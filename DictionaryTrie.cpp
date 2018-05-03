@@ -5,28 +5,10 @@
 Node::Node(char data2){
 	this->data = data2;
 	this->ifEnd=0;
+	this->freq=0;
 	this->left=this->equal=this->right=NULL;
 }
-/*
-bool Node::insert(std::string word, unsigned int i){
-	char ch = word.at(i);
-	Node *temp = this;
-	if(!temp)
-		temp = new Node(word.at(i));
-	if(ch < temp->data)
-		temp->left->insert(word, i);
-	else if(temp->data < ch)
-		temp->right->insert(word, i);
-	else {
-		if(i < word.length() - 1)
-			temp->equal->insert(word,i + 1);
-		else
-			temp->ifEnd = 1;
-	}
-	return true;
 
-}
-*/
 bool Node::find(std::string word, unsigned int i){
 	char ch = word.at(i);	
 	if(!this)
@@ -42,22 +24,54 @@ bool Node::find(std::string word, unsigned int i){
 	}
 }
 
-void Node::insert(Node** temp, std::string word, unsigned int i){
+bool Node::findPrefix(std::string word, unsigned int i){
+	char ch = word.at(i);	
+	if(!this)
+		return false;
+	if(ch < this->data)
+		return this->left->findPrefix(word, i);
+	else if(this->data < ch)
+		return this->right->findPrefix(word, i);
+	else {
+		if(i==word.length() - 1)
+			return true;
+		return this->equal->findPrefix(word, i+1);
+	}
+
+}
+
+
+void Node::insert(Node** temp, std::string word, unsigned int i, unsigned int freq){
 	char ch = word.at(i);
 	//Node *temp = this;
 	if(!(*temp))
 		*temp = new Node(word.at(i));
 	if(ch < (*temp)->data)
-		insert(&((*temp)->left),word, i);
+		insert(&((*temp)->left),word, i, freq);
 	else if((*temp)->data < ch)
-		insert(&((*temp)->right),word, i);
+		insert(&((*temp)->right),word, i, freq);
 	else {
 		if(i < word.length() - 1)
-			insert(&((*temp)->equal),word,i + 1);
-		else
+			insert(&((*temp)->equal),word,i + 1, freq);
+		else{
 			(*temp)->ifEnd = 1;
+			(*temp)->freq = freq;
+		}
 	}
 
+}
+
+void Node::deleteAll(Node* temp){
+	if(!temp)
+		return;
+	if(temp->left)
+		deleteAll(temp->left);
+	if(temp->equal)
+		deleteAll(temp->equal);
+	if(temp->right)
+		deleteAll(temp->right);
+	delete temp;
+	return;
 }
 
 
@@ -94,25 +108,9 @@ bool DictionaryTrie::insert(std::string word, unsigned int freq)
   if(find(word))
 	return false;
   //insert
-  root->insert(&root,word,0);
+  root->insert(&root,word,0,freq);
   return true;
   
-/*	
-  if(!root){
-	root = new Node(word.at(0));
-	Node *temp = root;
- 	for(unsigned i = 1; i<word.length();i++){
-		temp->equal=new Node(word.at(i));
-		temp=temp->equal;
-	}
-	temp->ifEnd = 1;
-		 
-  	return true;
-  } else {
-	//root->insert;
-  }
-  
-  */
 }
 
 /* Return true if word is in the dictionary, and false otherwise */
@@ -129,22 +127,6 @@ bool DictionaryTrie::find(std::string word) const
 
   Node *temp = root;
   return temp->find(word,0);
-  /*for(unsigned i = 0; i < word.length(); i++){
-	if(word.at(i) < temp->data){
-		if(!temp->left->data)
-			return false;
-		else
-			temp = temp->left;
-	} else if(temp->data < word.at(i)){
-		if(!temp->right->data)
-			return false;
-		else
-			temp = temp->right;
-	} else {
-		if(i == word.length()-1)
-			return temp
-	}
-  */
 }
 
 /* Return up to num_completions of the most frequent completions
@@ -159,6 +141,19 @@ bool DictionaryTrie::find(std::string word) const
  */
 std::vector<std::string> DictionaryTrie::predictCompletions(std::string prefix, unsigned int num_completions)
 {
+  //check if invalid string
+  if(prefix.empty()){
+	std::cout << "Invalid Input. Please retry with correct input" << std::endl;
+	std::vector<std::string> words;
+  	return words;
+
+  }
+  if(!root->findPrefix(prefix, 0)){
+  	std::cout << "Invalid Input. Please retry with correct input" << std::endl;
+	std::vector<std::string> words;
+  	return words;
+
+  }
   std::vector<std::string> words;
   return words;
 }
@@ -177,4 +172,6 @@ std::string DictionaryTrie::checkSpelling(std::string query)
 }
 
 /* Destructor */
-DictionaryTrie::~DictionaryTrie(){}
+DictionaryTrie::~DictionaryTrie(){
+	root->deleteAll(root);
+}

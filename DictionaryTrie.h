@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 /**
  *  The class for a dictionary ADT, implemented as a trie
  *  You may implement this class as either a mulit-way trie
@@ -21,13 +22,16 @@ class Node
   private:
   	char data;
   	//true if it is last character of one of string
-  	unsigned ifEnd: 1;
+  	unsigned int ifEnd;
+	unsigned int freq; 
  	class Node *left, *equal, *right;
   public:
 	Node(char data);
 	//bool insert(std::string word, unsigned int i);
-	void insert(Node** temp, std::string word, unsigned int i);
+	void insert(Node** temp, std::string word, unsigned int i, unsigned int freq);
 	bool find(std::string word, unsigned int i);
+	bool findPrefix(std::string word, unsigned int i);
+	void deleteAll(Node* temp);
 	friend class DictionaryTrie;
 };
 
